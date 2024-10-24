@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Legends: Bang Bang - Borok Store</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            width: 300px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-container {
+            margin: 20px 0;
+        }
+
+        .input-container input {
+            width: 90%;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border: none;
+            outline: none;
+            text-align: center;
+            background-color: #292929;
+            color: #fff;
+        }
+
+        .package-container {
+            height: 210px;
+            /* Fixed height to show only 6 boxes */
+            overflow-y: scroll;
+            margin-bottom: 20px;
+            padding-right: 5px;
+            /* Space for scrollbar */
+        }
+
+        .package {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            /* Three columns */
+            gap: 10px;
+        }
+
+        .package button {
+            padding: 10px;
+            background-color: #292929;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .package button:hover {
+            background-color: #444;
+        }
+
+        .price-box {
+            width: 90%;
+            padding: 10px;
+            margin: 5px auto;
+            border-radius: 5px;
+            background-color: #444;
+            color: #fff;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .proceed-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: #6c32a8;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .proceed-btn:hover {
+            background-color: #5a2794;
+        }
+
+        .confirmation {
+            display: none;
+            /* Hidden by default */
+            margin-top: 20px;
+            background-color: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .qr-code {
+            margin: 20px 0;
+        }
+
+        .qr-code img {
+            width: 150px;
+            /* Adjust size as needed */
+            height: 150px;
+            /* Adjust size as needed */
+        }
+
+        .copy-btn {
+            margin-left: 10px;
+            background-color: #292929;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+
+        .copy-btn:hover {
+            background-color: #444;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container" id="storeSection">
+        <h1>Mobile Legends: Bang Bang</h1>
+
+        <div class="input-container">
+            <input type="number" placeholder="User ID" id="userId" min="0" maxlength="9" oninput="limitLength(this, 9)">
+            <input type="number" placeholder="Server ID" id="serverId" min="0" maxlength="5"
+                oninput="limitLength(this, 5)">
+        </div>
+
+        <p>Select the Package</p>
+
+        <div class="package-container">
+            <div class="package">
+                <button onclick="selectPackage(15, '5 Diamonds')">5 Diamonds</button>
+                <button onclick="selectPackage(30, '14 Diamonds')">14 Diamonds</button>
+                <button onclick="selectPackage(40, '22 Diamonds')">22 Diamonds</button>
+                <button onclick="selectPackage(75, '42 Diamonds')">42 Diamonds</button>
+                <button onclick="selectPackage(100, '50 Diamonds')">50 Diamonds</button>
+                <button onclick="selectPackage(200, '100 Diamonds')">100 Diamonds</button>
+                <button onclick="selectPackage(300, '150 Diamonds')">150 Diamonds</button>
+                <button onclick="selectPackage(400, '200 Diamonds')">200 Diamonds</button>
+                <button onclick="selectPackage(500, '250 Diamonds')">250 Diamonds</button>
+                <button onclick="selectPackage(145, 'Weekly Pass')">Weekly Pass</button>
+                <button onclick="selectPackage(230, 'Starlight (7 Days)')">Starlight (7 Days)</button>
+                <button onclick="selectPackage(600, 'Monthly Pass')">Monthly Pass</button>
+            </div>
+        </div>
+
+        <div class="price-box" id="priceDisplay">Price: Rs 0</div>
+
+        <button class="proceed-btn" onclick="proceed()">Proceed</button>
+    </div>
+
+    <div class="confirmation" id="confirmationSection">
+        <h1>Payment Confirmation</h1>
+        <div class="info" id="userInfo"></div>
+        <div class="info" id="serverInfo"></div>
+        <div class="info" id="packageInfo"></div>
+        <div class="info" id="priceInfo"></div>
+
+        <div class="qr-code">
+            <h2>Scan to Pay</h2>
+            <img src="https://via.placeholder.com/250" alt="QR Code"> <!-- Replace with actual QR code URL -->
+        </div>
+
+        <div class="payment-info">
+            <p>Payment ID: <span id="paymentId">kwtharjamatia@fifedral</span></p>
+            <button class="copy-btn" onclick="copyPaymentId()">Copy</button>
+        </div>
+
+        <button class="proceed-btn" onclick="finalizePayment()">Finalize Payment</button>
+    </div>
+
+    <script>
+        let selectedPackage = '';
+        let selectedPrice = 0;
+
+        function limitLength(element, maxLength) {
+            if (element.value.length > maxLength) {
+                element.value = element.value.slice(0, maxLength);
+            }
+        }
+
+        function selectPackage(price, packageName) {
+            selectedPrice = price;
+            selectedPackage = packageName;
+            document.getElementById('priceDisplay').innerText = Price: Rs ${ price };
+        }
+
+        function proceed() {
+            // Get User ID and Server ID values
+            const userId = document.getElementById('userId').value;
+            const serverId = document.getElementById('serverId').value;
+
+            // Validate User ID length
+            if (userId.length !== 9) {
+                alert("User ID must be exactly 9 digits.");
+                return;
+            }
+
+            // Display confirmation section with selected details
+            document.getElementById('userInfo').innerText = User ID: ${ userId };
+            document.getElementById('serverInfo').innerText = Server ID: ${ serverId };
+            document.getElementById('packageInfo').innerText = Selected Package: ${ selectedPackage };
+            document.getElementById('priceInfo').innerText = Price: Rs ${ selectedPrice };
+
+            // Hide the store section and show the confirmation section
+            document.getElementById('storeSection').style.display = 'none';
+            document.getElementById('confirmationSection').style.display = 'block';
+        }
+
+        function copyPaymentId() {
+            const paymentId = document.getElementById('paymentId').innerText;
+            navigator.clipboard.writeText(paymentId).then(() => {
+                alert("Payment ID copied to clipboard!");
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+
+        function finalizePayment() {
+            const userId = document.getElementById('userInfo').innerText.split(': ')[1];
+            const serverId = document.getElementById('serverInfo').innerText.split(': ')[1];
+            const packageName = document.getElementById('packageInfo').innerText.split(': ')[1];
+            const price = document.getElementById('priceInfo').innerText.split(': ')[1];
+
+            const message = `User ID: ${userId}\nServer ID: ${serverId}\nPackage: ${packageName}\nPrice: ${price}\n
+*BOT MESSAGE: 
+Send Payment screenshot after sending order details.`;
+            const whatsappNumber = "+919863755391";
+            const whatsappUrl = https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)};
+
+                window.open(whatsappUrl, '_blank');
+        }
+    </script>
+</body>
+
+</html>
